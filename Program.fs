@@ -2,6 +2,7 @@
 open Fabulous.AST
 open Fantomas.FCS
 open Fantomas.FCS.Text
+open Fantomas.Core
 
 // using JavaPoet via IKVM .NET !yey
 // latest version from palantir does not work so using the older one here
@@ -9,25 +10,28 @@ open com.squareup.javapoet
 
 module FSharpLoader =
     
-    let loadFile filePath =
-        filePath
-        |> File.ReadAllText
-        |> SourceText.ofString
-        |> fun source -> Parse.parseFile false  source []
+    let fsharpStringToOak str =
+        let parsed, _ = 
+            str
+            |> SourceText.ofString
+            |> fun source -> Parse.parseFile false  source []
+
+        parsed |> CodeFormatter.TransformAST
 
 module AstMapper =
 
+    open javax.lang.model.element
+
     // TODO: read Fable.AST/oak and output a Java using poet 
     let fromFsharpToJava oakAst =
+
+        let main = 
+            MethodSpec
+                .methodBuilder("main")
+                .addCode("")
+                .build()
+
         // TODO:
-        ()
-
-
-module JavaWriter =
-    open javax.lang.model.element
-    
-    let outputJava main =   
-
         let helloWorld = 
             TypeSpec
                 .classBuilder("HelloWorld")
@@ -42,5 +46,34 @@ module JavaWriter =
 
         javaFile
 
-// For more information see https://aka.ms/fsharp-console-apps
-printfn "Hello from F#"
+module Test = 
+
+    let fsharpSample = 
+        """
+        pritnfn "hello java!"
+        """
+
+    let javaExpectation = 
+        """
+        System.out.println("hello java!");
+        """
+
+    let getOak() =
+        fsharpSample 
+        |> FSharpLoader.fsharpStringToOak
+
+    let parse () =
+        getOak ()
+        |> AstMapper.fromFsharpToJava
+
+
+
+
+Test.getOak() 
+|> CodeFormatter.FormatOakAsync 
+|> Async.RunSynchronously
+|> printfn "%s"
+
+Test.parse() 
+|> _.ToString()
+|> printfn "%s"
