@@ -17,7 +17,8 @@
 				"Ionide.Ionide-fsharp",
 				"ms-dotnettools.csharp",
 				"tintoy.msbuild-project-tools",
-				"icsharpcode.ilspy-vscode"
+				"icsharpcode.ilspy-vscode",
+				"christian-kohler.path-intellisense"
 			]
 		}
 	}
